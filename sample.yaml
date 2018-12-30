@@ -1,0 +1,20 @@
+devices:
+  pc: '****-bot'
+  sp: 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'
+robots:
+  pc: https://www.rakuten.co.jp/robots.txt
+  sp: https://www.rakuten.co.jp/robots.txt
+nodes:
+  - name: top
+    url:
+      pc: https://www.rakuten.co.jp/
+      sp: https://www.rakuten.co.jp/
+  - name: item-list
+    url:
+      pc: https://www.rakuten.co.jp/category/565162/
+      sp: https://www.rakuten.co.jp/category/565162/
+    childs:
+      - name: item
+        url_regexp:
+          pc: https://item.rakuten.co.jp/[\w\-]+/[\w\-]+/
+          sp: https://item.rakuten.co.jp/[\w\-]+/[\w\-]+/
