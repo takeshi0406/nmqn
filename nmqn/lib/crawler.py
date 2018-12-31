@@ -6,13 +6,14 @@ from base64 import urlsafe_b64encode
 
 
 class SyncCrawler(object):
-    def __init__(self, *, max_tab, headless=True, capture_path=None):
+    def __init__(self, *, max_tab, headless=True, capture_path=None, options=None):
         self._headless = headless
         self._max_tab = max_tab
         self._capture_path = Path(capture_path) if capture_path else None
+        self._options = options
 
     def __enter__(self):
-        self._loop = asyncio.get_event_loop()
+        self._loop = asyncio.new_event_loop()
         return self
 
     def __exit__(self, *exc):
@@ -24,7 +25,8 @@ class SyncCrawler(object):
             result = self._loop.run_until_complete(_async_fetch(
                 targets,
                 headless=self._headless,
-                capture_path=self._capture_path))
+                capture_path=self._capture_path,
+                options=self._options))
             yield from result
 
     @staticmethod
@@ -39,8 +41,8 @@ class SyncCrawler(object):
             yield res
 
 
-async def _async_fetch(urls, *, headless, capture_path):
-    async with AsyncCrawler(headless=headless) as c:
+async def _async_fetch(urls, *, headless, capture_path, options):
+    async with AsyncCrawler(headless=headless, options=options) as c:
         async def _inner(url):
             async with await c.open(url) as page:
                 resp = Response(await page.fetch())
@@ -57,8 +59,9 @@ class Response(object):
 
 
 class AsyncCrawler(object):
-    def __init__(self, *, headless):
+    def __init__(self, *, headless, options):
         self._headless = headless
+        self._options = options
 
     async def __aenter__(self):
         self._browser = await launch(headless=self._headless)
@@ -69,7 +72,7 @@ class AsyncCrawler(object):
         return False
 
     async def open(self, url):
-        return await CrawlerTab.open(self._browser, url)
+        return await CrawlerTab.open(self._browser, url, self._options)
 
 
 class CrawlerTab(object):
@@ -78,8 +81,12 @@ class CrawlerTab(object):
         self._url = url
 
     @classmethod
-    async def open(cls, browser, url):
+    async def open(cls, browser, url, options):
         page = await browser.newPage()
+        if options.useragent:
+            await page.setUserAgent(userAgent=options.useragent)
+        if options.viewport:
+            await page.setViewport(viewport=options.viewport)
         await page.goto(url)
         return cls(page, url)
 
@@ -91,8 +98,7 @@ class CrawlerTab(object):
         return False
 
     async def fetch(self):
-        content = await self._page.evaluate('document.body.textContent', force_expr=True)
-        print(content)
+        content = await self._page.evaluate('document.documentElement.innerHTML', force_expr=True)
         return HTML(html=content, url=self._url)
     
     async def screenshot(self, path):
