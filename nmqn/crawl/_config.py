@@ -21,7 +21,7 @@ class Config(object):
         options = BrowserOptions.parse(config["options"], device)
         return cls(config["robots"][device], options, nodes)
         
-    def allowed_all_url(self, nodes):
+    def check_robots_txt(self, nodes):
         for n in nodes:
             if not self._robots.can_fetch(n.url, self.options.useragent):
                 raise RuntimeError("許可されていません")

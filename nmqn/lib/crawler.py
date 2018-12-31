@@ -2,7 +2,6 @@ from pyppeteer import launch
 import asyncio
 from requests_html import HTML
 from pathlib import Path
-from base64 import urlsafe_b64encode
 
 
 class SyncCrawler(object):
@@ -14,14 +13,15 @@ class SyncCrawler(object):
 
     def __enter__(self):
         self._loop = asyncio.new_event_loop()
+        self._capture_path.mkdir(exist_ok=True, parents=True)
         return self
 
     def __exit__(self, *exc):
         self._loop.close()
         return False
 
-    def walk(self, urls):
-        for targets in self._each_slice(urls, self._max_tab):
+    def walk(self, nodes):
+        for targets in self._each_slice(nodes, self._max_tab):
             result = self._loop.run_until_complete(_async_fetch(
                 targets,
                 headless=self._headless,
@@ -41,15 +41,16 @@ class SyncCrawler(object):
             yield res
 
 
-async def _async_fetch(urls, *, headless, capture_path, options):
+async def _async_fetch(nodes, *, headless, capture_path, options):
     async with AsyncCrawler(headless=headless, options=options) as c:
-        async def _inner(url):
-            async with await c.open(url) as page:
+        async def _inner(node):
+            async with await c.open(node.url) as page:
                 resp = Response(await page.fetch())
                 if capture_path is not None:
-                    resp.path = await page.screenshot(capture_path.joinpath(urlsafe_b64encode(url.encode("utf-8")).decode()).with_suffix(".png"))
+                    resp.screenshot = await page.screenshot(
+                        capture_path.joinpath(node.name).with_suffix(".png"))
             return resp
-        return await asyncio.gather(*[_inner(u) for u in urls])
+        return await asyncio.gather(*[_inner(u) for u in nodes])
 
 
 class Response(object):
@@ -88,6 +89,7 @@ class CrawlerTab(object):
         if options.viewport:
             await page.setViewport(viewport=options.viewport)
         await page.goto(url)
+        # TODO:: wait until loaded
         return cls(page, url)
 
     async def __aenter__(self):
@@ -99,8 +101,9 @@ class CrawlerTab(object):
 
     async def fetch(self):
         content = await self._page.evaluate('document.documentElement.innerHTML', force_expr=True)
-        return HTML(html=content, url=self._url)
+        url = await self._page.evaluate('window.location.href', force_expr=True)
+        return HTML(html=content, url=url)
     
     async def screenshot(self, path):
-        await self._page.screenshot(path=str(path))
+        await self._page.screenshot(path=str(path), fullPage=True)
         return Path(path)

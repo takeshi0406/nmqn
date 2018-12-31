@@ -1,5 +1,6 @@
 .vscode
 .pytest_cache
+.tmp
 build/
 dist/
 __pycache__/
