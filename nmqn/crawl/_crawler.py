@@ -10,7 +10,8 @@ def crawl_all_nodes(config_dict, max_tab, path, headless):
             yield NodeResponse(
                 device=device,
                 node=node,
-                css_urls=_parse_css_urls(result.html))
+                stylesheets=result.stylesheets)
+
 
 def _parse_css_urls(html):
     base_url = html.base_url
@@ -23,10 +24,10 @@ def _parse_css_urls(html):
 
 
 class NodeResponse(object):
-    def __init__(self, *, device, node, css_urls):
-        self._device = device
-        self._node = node
-        self._css_urls = css_urls
+    def __init__(self, device, node, stylesheets):
+        self.device = device
+        self.node = node
+        self.stylesheets = stylesheets
 
 
 class CrawlClient(object):
@@ -34,7 +35,7 @@ class CrawlClient(object):
         self._config = config
         self._max_tab = max_tab
         self._headless = headless
-        self._path = path / "captures"
+        self._path = path
 
     def crawl_all_nodes(self, nodes):
         if not nodes:

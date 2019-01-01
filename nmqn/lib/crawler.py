@@ -1,5 +1,6 @@
 from pyppeteer import launch
 import asyncio
+import aiohttp
 from requests_html import HTML
 from pathlib import Path
 
@@ -45,17 +46,20 @@ async def _async_fetch(nodes, *, headless, capture_path, options):
     async with AsyncCrawler(headless=headless, options=options) as c:
         async def _inner(node):
             async with await c.open(node.url) as page:
-                resp = Response(await page.fetch())
+                resp = Response(
+                    await page.fetch(),
+                    await page.fetchStyleSheets())
                 if capture_path is not None:
                     resp.screenshot = await page.screenshot(
-                        capture_path.joinpath(node.name).with_suffix(".png"))
+                        capture_path / node.name / "capture.png")
             return resp
         return await asyncio.gather(*[_inner(u) for u in nodes])
 
 
 class Response(object):
-    def __init__(self, html, screenshot=None):
+    def __init__(self, html, stylesheets=None, screenshot=None):
         self.html = html
+        self.stylesheets = stylesheets
         self.screenshot = screenshot
 
 
@@ -65,6 +69,8 @@ class AsyncCrawler(object):
         self._options = options
 
     async def __aenter__(self):
+        # CORSを無効化して、別ドメインのCSSを参照できるようにする
+        # self._browser = await launch(headless=self._headless, args=['--disable-web-security'])
         self._browser = await launch(headless=self._headless)
         return self
 
@@ -105,5 +111,33 @@ class CrawlerTab(object):
         return HTML(html=content, url=url)
     
     async def screenshot(self, path):
+        path.parent.mkdir(exist_ok=True, parents=True)
         await self._page.screenshot(path=str(path), fullPage=True)
         return Path(path)
+
+    async def fetchStyleSheets(self):
+        urls = await self._page.evaluate("""() => {
+            const result = [];
+            for (const s of document.styleSheets) {
+                if (s.href) result.push(s.href);
+            }
+            return result;
+        }""")
+        return [await CssResponse.fetch(u) for u in urls]
+
+
+class CssResponse(object):
+    def __init__(self, url, css):
+        self.url = url
+        self.text = css
+
+    @classmethod
+    async def fetch(cls, url):
+        # TODO:: ブラウザから取得したい
+        async with aiohttp.request('GET', url) as response:
+            css = await response.text()
+        return cls(url, css)
+
+    @property
+    def raw_url(self):
+        return self.url.split("?")[0]
