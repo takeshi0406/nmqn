@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime as dt
 import time
 from base64 import urlsafe_b64encode
+import yaml
 
 
 def execute(confpath, max_tab, path, headless):
@@ -11,8 +12,8 @@ def execute(confpath, max_tab, path, headless):
     basepath = _basepath(path)
 
     for result in crawl_all_nodes(config_dict, max_tab, basepath, headless):
+        _save_result(basepath, result)
         _save_stylesheets(basepath, result)
-        # TODO:: save result
 
 
 def _basepath(path):
@@ -28,6 +29,13 @@ def _save_stylesheets(basepath, result):
         path.parent.mkdir(exist_ok=True, parents=True)
         with path.open("w") as f:
             f.write(stylesheet.text)
+
+
+def _save_result(basepath, result):
+    path = basepath /result.device / result.node.name / "result.yml"
+    path.parent.mkdir(exist_ok=True, parents=True)
+    with path.open("w") as f:
+        f.write(yaml.dump({"name": result.node.name, "url": result.node.url, "redirected": result.html.url}, default_flow_style=False))
 
 
 def _encode_css_name(stylesheet):

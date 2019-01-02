@@ -10,8 +10,8 @@ def crawl_all_nodes(config_dict, max_tab, path, headless):
             yield NodeResponse(
                 device=device,
                 node=node,
+                html=result.html,
                 stylesheets=result.stylesheets)
-
 
 def _parse_css_urls(html):
     base_url = html.base_url
@@ -24,9 +24,10 @@ def _parse_css_urls(html):
 
 
 class NodeResponse(object):
-    def __init__(self, device, node, stylesheets):
+    def __init__(self, *, device, node, html, stylesheets):
         self.device = device
         self.node = node
+        self.html = html
         self.stylesheets = stylesheets
 
 
@@ -47,6 +48,6 @@ class CrawlClient(object):
         with crawler.SyncCrawler(max_tab=self._max_tab, headless=self._headless, capture_path=self._path, options=self._config.options) as c:
             for node, result in zip(nodes, c.walk(nodes)):
                 yield node, result
-                childs += [x.parse_child_node(result.html.absolute_links) for x in node.childs]
+                childs += [c.parse_child_node(result.html.absolute_links) for c in node.childs]
 
         yield from self.crawl_all_nodes(childs)
