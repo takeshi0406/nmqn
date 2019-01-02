@@ -6,11 +6,26 @@ from urllib.robotparser import RobotFileParser
 def parse(path):
     with open(path, "r") as f:
         config = yaml.load(f)
-    return {d: Config.parse(config, d) for d in config["options"].keys()}
+    return Config.parse(config)
 
 
 class Config(object):
-    def __init__(self, robotsurl, options, nodes):
+    def __init__(self, name, deviceconfs):
+        self.name = name
+        self.deviceconfs = deviceconfs
+
+    @classmethod
+    def parse(cls, config):
+        return cls(config["name"], [DeviceConfig.parse(config, d) for d in config["options"].keys()])
+
+    def __iter__(self):
+        return iter(self.deviceconfs)
+
+
+class DeviceConfig(object):
+    def __init__(self, name, device, robotsurl, options, nodes):
+        self.name = name
+        self.device = device
         self._robots = RobotsConfig(robotsurl)
         self.options = options
         self.nodes = nodes
@@ -19,7 +34,7 @@ class Config(object):
     def parse(cls, config, device):
         nodes = [Node.parse(n, device) for n in config["nodes"]]
         options = BrowserOptions.parse(config["options"], device)
-        return cls(config["robots"][device], options, nodes)
+        return cls(config["name"], device, config["robots"][device], options, nodes)
         
     def check_robots_txt(self, nodes):
         for n in nodes:

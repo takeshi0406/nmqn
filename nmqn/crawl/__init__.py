@@ -8,19 +8,19 @@ import yaml
 
 
 def execute(confpath, max_tab, path, headless):
-    config_dict = parse(confpath)
-    basepath = _basepath(path)
+    config = parse(confpath)
+    basepath = _basepath(path, config.name)
 
-    for result in crawl_all_nodes(config_dict, max_tab, basepath, headless):
+    for result in crawl_all_nodes(config, max_tab, basepath, headless):
         _save_result(basepath, result)
         _save_stylesheets(basepath, result)
 
 
-def _basepath(path):
+def _basepath(path, name):
     now = dt.now()
     date = now.strftime("%Y-%m-%d")
     unixtime = int(time.mktime(now.timetuple()))
-    return Path(path) / date / str(unixtime)
+    return Path(path) / name / date / str(unixtime)
 
 
 def _save_stylesheets(basepath, result):
@@ -35,7 +35,12 @@ def _save_result(basepath, result):
     path = basepath /result.device / result.node.name / "result.yml"
     path.parent.mkdir(exist_ok=True, parents=True)
     with path.open("w") as f:
-        f.write(yaml.dump({"name": result.node.name, "url": result.node.url, "redirected": result.html.url}, default_flow_style=False))
+        f.write(yaml.dump({
+            "name": result.node.name,
+            "url": result.node.url,
+            "redirected": result.html.url,
+            "stylesheets": [s.url for s in result.stylesheets]
+            }, default_flow_style=False))
 
 
 def _encode_css_name(stylesheet):

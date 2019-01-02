@@ -3,24 +3,15 @@ from urllib.parse import urljoin
 from pathlib import Path
 
 
-def crawl_all_nodes(config_dict, max_tab, path, headless):
-    for device, config in config_dict.items():
-        client = CrawlClient(config, max_tab, Path(path) / device, headless)
-        for node, result in client.crawl_all_nodes(config.nodes):
+def crawl_all_nodes(allconfig, max_tab, path, headless):
+    for deviceconf in allconfig:
+        client = CrawlClient(deviceconf, max_tab, Path(path) / deviceconf.device, headless)
+        for node, result in client.crawl_all_nodes(deviceconf.nodes):
             yield NodeResponse(
-                device=device,
+                device=deviceconf.device,
                 node=node,
                 html=result.html,
                 stylesheets=result.stylesheets)
-
-def _parse_css_urls(html):
-    base_url = html.base_url
-    result = []
-    for elem in html.find("link[rel=stylesheet]"):
-        url = elem.attrs.get("href", None)
-        if url:
-            result.append(urljoin(base_url, url))
-    return result
 
 
 class NodeResponse(object):
