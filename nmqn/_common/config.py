@@ -37,6 +37,7 @@ class DeviceConfig(object):
         return cls(config["name"], device, config["robots"][device], options, nodes)
         
     def check_robots_txt(self, nodes):
+        self._robots.load()
         for n in nodes:
             if not self._robots.can_fetch(n.url, self.options.useragent):
                 raise RuntimeError("許可されていません")
@@ -89,7 +90,13 @@ class RobotsConfig(object):
     def __init__(self, robotsurl):
         self._parser = RobotFileParser()
         self._parser.set_url(robotsurl)
+        self._loaded = False
+
+    def load(self):
+        if self._loaded:
+            return
         self._parser.read()
+        self._loaded = True
 
     def can_fetch(self, useragent, url):
         return self._parser.can_fetch(useragent, url)
