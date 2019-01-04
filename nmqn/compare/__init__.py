@@ -11,7 +11,7 @@ def execute(confpath, today, yesterday, path):
     
     m = NodeManager(path, config)
     for t, y in zip(m.iter_nodes(today), m.iter_nodes(yesterday)):
-        print(t._basepath, y._basepath)
+        print(ResultDiff(t, y))
 
 
 class NodeManager(object):
@@ -23,6 +23,12 @@ class NodeManager(object):
         basepath = p.current_basepath(self._path, self._config.name, date)
         for devcon in self._config:
             yield Reader(basepath, devcon)
+
+
+class ResultDiff(object):
+    def __init__(self, today, yesterday):
+        self._today = today
+        self._yesterday = yesterday
 
 
 class Reader(object):
@@ -49,6 +55,7 @@ class Result(object):
 
     @classmethod
     def load(cls, path):
+        # TODO:: 存在しない場合の処理
         with (path / "result.yml").open("r") as f:
             config = yaml.load(f)
         return cls(config, path)
