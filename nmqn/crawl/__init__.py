@@ -15,7 +15,7 @@ def execute(confpath, max_tab, path, headless):
 
 def _save_stylesheets(basepath, result):
     for stylesheet in result.stylesheets:
-        path = basepath / result.device / result.node.name / "stylesheets" / p.encode_css_name(stylesheet)
+        path = basepath / result.device / result.node.name / "stylesheets" / p.encode_css_name(stylesheet.raw_url)
         path.parent.mkdir(exist_ok=True, parents=True)
         with path.open("w") as f:
             f.write(stylesheet.text)
