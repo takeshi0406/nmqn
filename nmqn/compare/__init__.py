@@ -11,7 +11,7 @@ def execute(confpath, today, yesterday, path):
     
     m = NodeManager(path, config)
     for t, y in zip(m.iter_nodes(today), m.iter_nodes(yesterday)):
-        print(ResultDiff(t, y))
+        print(t._path, y._path)
 
 
 class NodeManager(object):
@@ -22,7 +22,10 @@ class NodeManager(object):
     def iter_nodes(self, date):
         basepath = p.current_basepath(self._path, self._config.name, date)
         for devcon in self._config:
-            yield Reader(basepath, devcon)
+            for node in devcon.nodes:
+                path = basepath / devcon.device
+                yield Reader(path / node.name, devcon)
+                yield from (Reader(path / c.name, devcon) for c in node.childs)
 
 
 class ResultDiff(object):
@@ -32,8 +35,8 @@ class ResultDiff(object):
 
 
 class Reader(object):
-    def __init__(self, basepath, deviceconfig):
-        self._basepath = basepath / deviceconfig.device
+    def __init__(self, path, deviceconfig):
+        self._path = path
         self._deviceconfig = deviceconfig
 
     @property
@@ -43,7 +46,7 @@ class Reader(object):
     @property
     def results(self):
         results = []
-        for path in self._basepath.iterdir():
+        for path in self._path.iterdir():
             results.append(Result.load(path))
         return results
 

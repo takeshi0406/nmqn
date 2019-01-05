@@ -68,7 +68,7 @@ class Node(object):
 
 class ChildNode(object):
     def __init__(self, name, url_regexp, childs):
-        self._name = name
+        self.name = name
         self._url_regexp = re.compile(url_regexp)
         self._childs = childs
 
