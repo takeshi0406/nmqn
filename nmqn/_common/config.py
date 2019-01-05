@@ -82,7 +82,7 @@ class ChildNode(object):
         """
         for url in urls:
             if self._url_regexp.match(url):
-                return Node(self._name, url, self._childs)
+                return Node(self.name, url, self._childs)
         raise ValueError(f"Url Not Found.: {urls}")
 
 

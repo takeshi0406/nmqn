@@ -59,6 +59,8 @@ class Result(object):
     @classmethod
     def load(cls, path):
         # TODO:: 存在しない場合の処理
+        if not path.exists():
+            return None
         with (path / "result.yml").open("r") as f:
             config = yaml.load(f)
         return cls(config, path)
