@@ -11,7 +11,8 @@ def execute(confpath, today, yesterday, path):
     
     m = NodeManager(path, config)
     for t, y in zip(m.iter_nodes(today), m.iter_nodes(yesterday)):
-        print(t._path, y._path)
+        # 差分を取る
+        print(set(t.iter_stylesheets()) - set(y.iter_stylesheets()))
 
 
 class NodeManager(object):
@@ -44,34 +45,24 @@ class Reader(object):
         return self._deviceconfig.device
 
     @property
-    def results(self):
-        results = []
-        for path in self._path.iterdir():
-            results.append(Result.load(path))
-        return results
-
-
-class Result(object):
-    def __init__(self, config, path):
-        self._config = config
-        self._path = path
-
-    @classmethod
-    def load(cls, path):
-        # TODO:: 存在しない場合の処理
-        if not path.exists():
-            return None
-        with (path / "result.yml").open("r") as f:
+    def result(self):
+        with (self._path / "result.yml").open("r") as f:
             config = yaml.load(f)
-        return cls(config, path)
+        return config
 
     def iter_stylesheets(self):
-        for s in self._config["stylesheets"]:
+        for s in self.result["stylesheets"]:
             with (self._path / "stylesheets" / p.encode_css_name(s.split("?")[0])).open("r") as f:
                 yield StyleSheetInfomation(s, f.read())
 
 
 class StyleSheetInfomation(object):
     def __init__(self, url, stylesheet):
-        self._url = url
+        self.url = url
         self._stylesheet = stylesheet
+
+    def __hash__(self):
+        return hash(self.url)
+
+    def __eq__(self, another):
+        return self.url == another.url
