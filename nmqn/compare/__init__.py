@@ -12,7 +12,11 @@ def execute(confpath, today, yesterday, path):
     m = NodeManager(path, config)
     for t, y in zip(m.iter_nodes(today), m.iter_nodes(yesterday)):
         # 差分を取る
-        print(set(t.iter_stylesheets()) - set(y.iter_stylesheets()))
+        diffs = AssetsDiff(t.iter_stylesheets(), y.iter_stylesheets())
+
+        print(diffs.added)
+        print(diffs.deleted)
+
 
 
 class NodeManager(object):
@@ -29,10 +33,20 @@ class NodeManager(object):
                 yield from (Reader(path / c.name, devcon) for c in node.childs)
 
 
-class ResultDiff(object):
+class AssetsDiff(object):
     def __init__(self, today, yesterday):
-        self._today = today
-        self._yesterday = yesterday
+        self._today = {x.url: x for x in today}
+        self._yesterday = {x.url: x for x in yesterday}
+
+    @property
+    def added(self):
+        keys = set(self._today.keys()) - set(self._yesterday.keys())
+        return {k: self._today[k] for k in keys}
+
+    @property
+    def deleted(self):
+        keys = set(self._yesterday.keys()) - set(self._today.keys())
+        return {k: self._yesterday[k] for k in keys}
 
 
 class Reader(object):
@@ -60,9 +74,3 @@ class StyleSheetInfomation(object):
     def __init__(self, url, stylesheet):
         self.url = url
         self._stylesheet = stylesheet
-
-    def __hash__(self):
-        return hash(self.url)
-
-    def __eq__(self, another):
-        return self.url == another.url
