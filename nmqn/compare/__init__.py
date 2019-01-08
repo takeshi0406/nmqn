@@ -35,18 +35,18 @@ class NodeManager(object):
 
 class AssetsDiff(object):
     def __init__(self, today, yesterday):
-        self._today = {x.url: x for x in today}
-        self._yesterday = {x.url: x for x in yesterday}
+        self._today = {x.raw_url: x for x in today}
+        self._yesterday = {x.raw_url: x for x in yesterday}
 
     @property
     def added(self):
         keys = set(self._today.keys()) - set(self._yesterday.keys())
-        return {k: self._today[k] for k in keys}
+        return [self._today[k] for k in keys]
 
     @property
     def deleted(self):
         keys = set(self._yesterday.keys()) - set(self._today.keys())
-        return {k: self._yesterday[k] for k in keys}
+        return [self._yesterday[k] for k in keys]
 
 
 class Reader(object):
@@ -74,3 +74,8 @@ class StyleSheetInfomation(object):
     def __init__(self, url, stylesheet):
         self.url = url
         self._stylesheet = stylesheet
+    
+    @property
+    def raw_url(self):
+        # TODO:: 数字はバージョンであることが多いので塗りつぶす
+        return self.url.split("?")[0]
