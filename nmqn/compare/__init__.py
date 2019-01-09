@@ -1,4 +1,5 @@
 import yaml
+from difflib import unified_diff
 from .._common import (config as c, path as p)
 
 
@@ -16,7 +17,8 @@ def execute(confpath, today, yesterday, path):
 
         print(diffs.added)
         print(diffs.deleted)
-
+        for d in diffs.diffs:
+            print(len(d.diff))
 
 
 class NodeManager(object):
@@ -48,6 +50,21 @@ class AssetsDiff(object):
         keys = set(self._yesterday.keys()) - set(self._today.keys())
         return [self._yesterday[k] for k in keys]
 
+    @property
+    def diffs(self):
+        keys = set(self._today.keys()) & set(self._yesterday.keys())
+        return [FileDiff(self._today[k], self._yesterday[k]) for k in keys]
+
+
+class FileDiff(object):
+    def __init__(self, today_asset, yesterday_asset):
+        self._t = today_asset
+        self._y = yesterday_asset
+
+    @property
+    def diff(self):
+        with self._t.path.open("r") as tf, self._y.path.open("r") as yf:
+            return "".join(unified_diff(tf.readlines(), yf.readlines()))
 
 class Reader(object):
     def __init__(self, path, deviceconfig):
@@ -66,14 +83,13 @@ class Reader(object):
 
     def iter_stylesheets(self):
         for s in self.result["stylesheets"]:
-            with (self._path / "stylesheets" / p.encode_css_name(s.split("?")[0])).open("r") as f:
-                yield StyleSheetInfomation(s, f.read())
+            yield StyleSheetInfomation(s, self._path / "stylesheets" / p.encode_css_name(s.split("?")[0]))
 
 
 class StyleSheetInfomation(object):
-    def __init__(self, url, stylesheet):
+    def __init__(self, url, path):
         self.url = url
-        self._stylesheet = stylesheet
+        self.path = path
     
     @property
     def raw_url(self):
