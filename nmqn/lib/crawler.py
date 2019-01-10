@@ -137,7 +137,3 @@ class CssResponse(object):
         async with aiohttp.request('GET', url) as response:
             css = await response.text()
         return cls(url, css)
-
-    @property
-    def raw_url(self):
-        return self.url.split("?")[0]

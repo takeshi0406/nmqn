@@ -9,19 +9,22 @@ def execute(confpath, max_tab, path, headless):
     basepath = p.basepath(path, config.name)
 
     for result in crawl_all_nodes(config, max_tab, basepath, headless):
-        _save_result(basepath, result)
-        _save_stylesheets(basepath, result)
+        saved = _save_stylesheets(basepath, result)
+        _save_result(basepath, result, saved)
 
 
 def _save_stylesheets(basepath, result):
+    saved = []
     for stylesheet in result.stylesheets:
-        path = basepath / result.device / result.node.name / "stylesheets" / p.encode_css_name(stylesheet.raw_url)
+        path = basepath / result.device / result.node.name / "stylesheets" / p.encode_css_name(stylesheet.url)
         path.parent.mkdir(exist_ok=True, parents=True)
         with path.open("w") as f:
             f.write(stylesheet.text)
+        saved.append({"url": stylesheet.url, "path": path.name})
+    return saved
 
 
-def _save_result(basepath, result):
+def _save_result(basepath, result, saved):
     path = basepath /result.device / result.node.name / "result.yml"
     path.parent.mkdir(exist_ok=True, parents=True)
     with path.open("w") as f:
@@ -29,5 +32,5 @@ def _save_result(basepath, result):
             "name": result.node.name,
             "url": result.node.url,
             "redirected": result.html.url,
-            "stylesheets": [s.url for s in result.stylesheets]
+            "stylesheets": saved
             }, default_flow_style=False))

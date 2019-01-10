@@ -18,7 +18,8 @@ def execute(confpath, today, yesterday, path):
         print(diffs.added)
         print(diffs.deleted)
         for d in diffs.diffs:
-            print(len(d.diff))
+            print(d.url)
+            print(d.id_url)
 
 
 class NodeManager(object):
@@ -37,8 +38,8 @@ class NodeManager(object):
 
 class AssetsDiff(object):
     def __init__(self, today, yesterday):
-        self._today = {x.raw_url: x for x in today}
-        self._yesterday = {x.raw_url: x for x in yesterday}
+        self._today = {x.id_url: x for x in today}
+        self._yesterday = {x.id_url: x for x in yesterday}
 
     @property
     def added(self):
@@ -60,11 +61,20 @@ class FileDiff(object):
     def __init__(self, today_asset, yesterday_asset):
         self._t = today_asset
         self._y = yesterday_asset
+        with today_asset.path.open("r") as tf, yesterday_asset.path.open("r") as yf:
+            self.diff = "".join(unified_diff(tf.readlines(), yf.readlines()))
+    
+    @property
+    def url(self):
+        return self._t.url
 
     @property
-    def diff(self):
-        with self._t.path.open("r") as tf, self._y.path.open("r") as yf:
-            return "".join(unified_diff(tf.readlines(), yf.readlines()))
+    def id_url(self):
+        return self._t.id_url
+
+    def is_changed(self):
+        return len(self.diff) >= 1
+
 
 class Reader(object):
     def __init__(self, path, deviceconfig):
@@ -83,7 +93,7 @@ class Reader(object):
 
     def iter_stylesheets(self):
         for s in self.result["stylesheets"]:
-            yield StyleSheetInfomation(s, self._path / "stylesheets" / p.encode_css_name(s.split("?")[0]))
+            yield StyleSheetInfomation(s["url"], self._path / "stylesheets" / s["path"])
 
 
 class StyleSheetInfomation(object):
@@ -92,6 +102,6 @@ class StyleSheetInfomation(object):
         self.path = path
     
     @property
-    def raw_url(self):
+    def id_url(self):
         # TODO:: 数字はバージョンであることが多いので塗りつぶす
-        return self.url.split("?")[0]
+        return p.identify_url(self.url)

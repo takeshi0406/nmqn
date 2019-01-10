@@ -1,3 +1,4 @@
+import re
 import time
 from pathlib import Path
 from datetime import timedelta
@@ -18,4 +19,9 @@ def current_basepath(path, name, date):
     return max(parent.iterdir(), key=lambda x: int(x.stem))
 
 def encode_css_name(css_url):
-    return urlsafe_b64encode(css_url.encode("utf-8")).decode("utf-8") + ".css"
+    id_url = identify_url(css_url)
+    return urlsafe_b64encode(id_url.encode("utf-8")).decode("utf-8") + ".css"
+
+def identify_url(url):
+    # 数値は日付かバージョンのことが多いので置き換える
+    return re.sub(r"\d", "*", url)
