@@ -24,4 +24,4 @@ def encode_css_name(css_url):
 
 def identify_url(url):
     # 数値は日付かバージョンのことが多いので置き換える
-    return re.sub(r"\d", "*", url)
+    return re.sub(r"\d", "*", url.split("?")[0])
