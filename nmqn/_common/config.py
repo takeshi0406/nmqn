@@ -4,6 +4,14 @@ from urllib.robotparser import RobotFileParser
 
 
 def parse(path):
+    """Parse user-prepared configuration file (yaml).
+
+    Args:
+        path (pathlib.Path/str): configuration file
+    Returns:
+        Config: Configuration class
+
+    """
     with open(path, "r") as f:
         config = yaml.load(f)
     return Config.parse(config)

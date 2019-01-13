@@ -1,6 +1,7 @@
 import yaml
 from difflib import unified_diff
 from .._common import (config as c, path as p)
+from ._view import build
 
 
 def execute(confpath, today, yesterday, path):
@@ -13,13 +14,8 @@ def execute(confpath, today, yesterday, path):
     m = NodeManager(path, config)
     for t, y in zip(m.iter_nodes(today), m.iter_nodes(yesterday)):
         # 差分を取る
-        diffs = AssetsDiff(t.iter_stylesheets(), y.iter_stylesheets())
-
-        print(diffs.added)
-        print(diffs.deleted)
-        for d in diffs.diffs:
-            print(d.url)
-            print(d.id_url)
+        diffs = AssetsDiffs.parse(t, y)
+        build(diffs)
 
 
 class NodeManager(object):
@@ -36,10 +32,15 @@ class NodeManager(object):
                 yield from (Reader(path / c.name, devcon) for c in node.childs)
 
 
-class AssetsDiff(object):
-    def __init__(self, today, yesterday):
+class AssetsDiffs(object):
+    def __init__(self, name, today, yesterday):
         self._today = {x.id_url: x for x in today}
         self._yesterday = {x.id_url: x for x in yesterday}
+        self.name = name
+
+    @classmethod
+    def parse(cls, today, yesterday):
+        return cls(today.name, today.iter_stylesheets(), yesterday.iter_stylesheets())
 
     @property
     def added(self):
@@ -80,6 +81,10 @@ class Reader(object):
     def __init__(self, path, deviceconfig):
         self._path = path
         self._deviceconfig = deviceconfig
+    
+    @property
+    def name(self):
+        return self._deviceconfig.name
 
     @property
     def device(self):
