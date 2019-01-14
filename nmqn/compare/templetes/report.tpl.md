@@ -22,9 +22,10 @@
 ```css
 {{ x.diff }}
 ```
-{% endfor %}
+{%- endfor -%}
 
 {%- else -%}
+
 
 {%- endif -%}
 

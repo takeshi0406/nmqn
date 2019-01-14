@@ -94,7 +94,7 @@ class CrawlerTab(object):
             await page.setUserAgent(userAgent=options.useragent)
         if options.viewport:
             await page.setViewport(viewport=options.viewport)
-        await page.goto(url)
+        await page.goto(url, timeout=100000) #TODO:: timeouttime
         # TODO:: wait until loaded
         return cls(page, url)
 
