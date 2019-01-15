@@ -33,4 +33,4 @@
 
 |  before  |  after  |
 |:----|:----|
-|![before]({{ before_capture_path }})|![after]({{ after_capture_path }})|
+|test|test|
