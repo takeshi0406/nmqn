@@ -33,4 +33,4 @@
 
 |  before  |  after  |
 |:----|:----|
-|test|test|
+| test | test |

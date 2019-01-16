@@ -13,7 +13,7 @@ def build(diffs):
     path.mkdir(parents=True, exist_ok=True)
     mdpath = _build_markdown(diffs, path)
     outpath = path / "output.html"
-    pweave.weave(str(mdpath.absolute()), output=str(outpath.absolute()), informat="markdown")
+    pweave.tangle(str(mdpath.absolute()))
     print('ok')
     raise
 
