@@ -27,8 +27,7 @@
 {%- else -%}
 
 
-{%- endif -%}
-
+{%- endif %}
 ## captures
 
 |  before  |  after  |
