@@ -1,7 +1,8 @@
 import yaml
+from pathlib import Path
 from difflib import unified_diff
 from .._common import (config as c, path as p)
-from ._view import build
+from ._view import ReportBuilder
 
 
 def execute(confpath, today, yesterday, path):
@@ -11,20 +12,23 @@ def execute(confpath, today, yesterday, path):
     if not yesterday:
         yesterday = p.current_date(-1)
     
-    m = NodeManager(path, config)
+    basepath = Path(path) / config.name
+    m = NodeManager(basepath, config)
+    rb = ReportBuilder(basepath, f"{yesterday}-{today}")
+
     for t, y in zip(m.iter_nodes(today), m.iter_nodes(yesterday)):
         # 差分を取る
         diffs = AssetsDiffs.parse(t, y)
-        build(diffs)
+        rb.build(diffs)
 
 
 class NodeManager(object):
-    def __init__(self, path, config):
+    def __init__(self, basepath, config):
         self._config = config
-        self._path = path
+        self._basepath = basepath / "logs"
 
     def iter_nodes(self, date):
-        basepath = p.current_basepath(self._path, self._config.name, date)
+        basepath = p.current_path(self._basepath, date)
         for devcon in self._config:
             for node in devcon.nodes:
                 path = basepath / devcon.device

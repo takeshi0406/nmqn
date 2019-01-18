@@ -8,14 +8,18 @@ TEMPLETE = Environment(loader=FileSystemLoader('./nmqn/compare/templetes', encod
     get_template('report.tpl.md')
 
 
-def build(diffs):
-    path = Path("./output")
-    path.mkdir(parents=True, exist_ok=True)
-    mdpath = _build_markdown(diffs, path)
-    outpath = path / "output.html"
-    pweave.weave(str(mdpath.absolute()), output=str(outpath.absolute()), doctype="pandoc2html")
-    print('ok')
-    raise
+class ReportBuilder(object):
+    def __init__(self, basepath, name):
+        self._basepath = basepath / "report" / name
+
+    def build(self, diffs):
+        path = self._basepath
+        self._basepath.mkdir(parents=True, exist_ok=True)
+        mdpath = _build_markdown(diffs, path)
+        outpath = path / "output.html"
+        pweave.weave(str(mdpath.absolute()), output=str(outpath.absolute()), doctype="pandoc2html")
+        print('ok')
+        raise
 
 
 def _build_markdown(diffs, path):

@@ -6,7 +6,7 @@ import yaml
 
 def execute(confpath, max_tab, path, headless):
     config = c.parse(confpath)
-    basepath = p.basepath(path, config.name)
+    basepath = p.create_basepath(path, config.name)
 
     for result in crawl_all_nodes(config, max_tab, basepath, headless):
         saved = _save_stylesheets(basepath, result)
