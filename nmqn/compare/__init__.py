@@ -12,14 +12,14 @@ def execute(confpath, today, yesterday, path):
     if not yesterday:
         yesterday = p.current_date(-1)
     
-    basepath = Path(path) / config.name
+    basepath = Path(path).resolve() / config.name
     m = NodeManager(basepath, config)
     rb = ReportBuilder(basepath, f"{yesterday}-{today}")
 
     for t, y in zip(m.iter_nodes(today), m.iter_nodes(yesterday)):
         # 差分を取る
-        diffs = AssetsDiffs.parse(t, y)
-        rb.build(diffs)
+        with rb.each_page(AssetsDiffs.parse(t, y)) as ep:
+            ep.build()
 
 
 class NodeManager(object):
@@ -37,14 +37,16 @@ class NodeManager(object):
 
 
 class AssetsDiffs(object):
-    def __init__(self, name, today, yesterday):
+    def __init__(self, name, device, nodename, today, yesterday):
         self._today = {x.id_url: x for x in today}
         self._yesterday = {x.id_url: x for x in yesterday}
         self.name = name
+        self.device = device
+        self.nodename = nodename
 
     @classmethod
     def parse(cls, today, yesterday):
-        return cls(today.name, today.iter_stylesheets(), yesterday.iter_stylesheets())
+        return cls(today.name, today.device, today.nodename, today.iter_stylesheets(), yesterday.iter_stylesheets())
 
     @property
     def added(self):
@@ -83,8 +85,10 @@ class FileDiff(object):
 
 class Reader(object):
     def __init__(self, path, deviceconfig):
-        self._path = path
         self._deviceconfig = deviceconfig
+        self._path = path
+        with (path / "result.yml").open("r") as f:
+            self.result = yaml.load(f)
     
     @property
     def name(self):
@@ -95,10 +99,8 @@ class Reader(object):
         return self._deviceconfig.device
 
     @property
-    def result(self):
-        with (self._path / "result.yml").open("r") as f:
-            config = yaml.load(f)
-        return config
+    def nodename(self):
+        return self.result["name"]
 
     def iter_stylesheets(self):
         for s in self.result["stylesheets"]:
