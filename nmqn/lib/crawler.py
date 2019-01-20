@@ -46,14 +46,17 @@ async def _async_fetch(nodes, *, headless, capture_path, options):
     async with AsyncCrawler(headless=headless, options=options) as c:
         async def _inner(node):
             async with await c.open(node.url) as page:
-                resp = Response(
-                    await page.fetch(),
-                    await page.fetchStyleSheets())
-                if capture_path is not None:
-                    resp.screenshot = await page.screenshot(
-                        capture_path / node.name / "capture.png")
-            return resp
-        return await asyncio.gather(*[_inner(u) for u in nodes])
+                html = await page.fetch()
+                css = await page.fetchStyleSheets()
+                screenshot = await page.screenshot(
+                    capture_path / node.name / "capture.png")
+            return (html, css, screenshot)
+        results = await asyncio.gather(*[_inner(u) for u in nodes])
+    # タイムアウトしてしまうので、ブラウザ終了後にCSSを取得
+    return [Response(h, await fetch_stylesheets(c), s) for h, c, s in results]
+
+async def fetch_stylesheets(urls):
+    return [await CssResponse.fetch(u) for u in urls]
 
 
 class Response(object):
@@ -70,8 +73,8 @@ class AsyncCrawler(object):
 
     async def __aenter__(self):
         # CORSを無効化して、別ドメインのCSSを参照できるようにする
-        # self._browser = await launch(headless=self._headless, args=['--disable-web-security'])
-        self._browser = await launch(headless=self._headless)
+        self._browser = await launch(headless=self._headless, args=['--disable-web-security'])
+        # self._browser = await launch(headless=self._headless, ignoreHTTPSErrors=True)
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
@@ -116,14 +119,13 @@ class CrawlerTab(object):
         return Path(path)
 
     async def fetchStyleSheets(self):
-        urls = await self._page.evaluate("""() => {
+        return await self._page.evaluate("""() => {
             const result = [];
             for (const s of document.styleSheets) {
                 if (s.href) result.push(s.href);
             }
             return result;
         }""")
-        return [await CssResponse.fetch(u) for u in urls]
 
 
 class CssResponse(object):
@@ -133,6 +135,7 @@ class CssResponse(object):
 
     @classmethod
     async def fetch(cls, url):
+        print(url)
         # TODO:: ブラウザから取得したい
         async with aiohttp.request('GET', url) as response:
             css = await response.text()
