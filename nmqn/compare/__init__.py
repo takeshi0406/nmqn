@@ -43,6 +43,8 @@ class AssetsDiffs(object):
         self.name = name
         self.device = device
         self.nodename = nodename
+        self.before_capture_path
+        self.after_capture_path
 
     @classmethod
     def parse(cls, today, yesterday):
@@ -79,9 +81,6 @@ class FileDiff(object):
     def id_url(self):
         return self._t.id_url
 
-    def is_changed(self):
-        return len(self.diff) >= 1
-
 
 class Reader(object):
     def __init__(self, path, deviceconfig):
@@ -101,6 +100,10 @@ class Reader(object):
     @property
     def nodename(self):
         return self.result["name"]
+
+    @property
+    def capture_path(self):
+        return self.result["capture_path"]
 
     def iter_stylesheets(self):
         for s in self.result["stylesheets"]:

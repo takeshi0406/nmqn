@@ -47,8 +47,8 @@ class EachPageBuilder(object):
             "title": self._diffs.name,
             "added": [{"url": x.url} for x in self._diffs.added],
             "deleted": [{"url": x.url} for x in self._diffs.deleted],
-            "before_capture_path": "./test.png",
-            "after_capture_path": "./test.png"
+            "before_capture_path": self._diffs.before_capture_path,
+            "after_capture_path": self._diffs.after_capture_path
         })
         mdpath = self._path / mdname
         with mdpath.open("w") as f:

@@ -32,5 +32,6 @@ def _save_result(basepath, result, saved):
             "name": result.node.name,
             "url": result.node.url,
             "redirected": result.html.url,
-            "stylesheets": saved
+            "stylesheets": saved,
+            "capture_path": result.capture_path
             }, default_flow_style=False))

@@ -11,15 +11,17 @@ def crawl_all_nodes(allconfig, max_tab, path, headless):
                 device=deviceconf.device,
                 node=node,
                 html=result.html,
-                stylesheets=result.stylesheets)
+                stylesheets=result.stylesheets,
+                capture_path=result.capture_path)
 
 
 class NodeResponse(object):
-    def __init__(self, *, device, node, html, stylesheets):
+    def __init__(self, *, device, node, html, stylesheets, capture_path):
         self.device = device
         self.node = node
         self.html = html
         self.stylesheets = stylesheets
+        self.capture_path = capture_path
 
 
 class CrawlClient(object):
