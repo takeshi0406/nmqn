@@ -43,8 +43,8 @@ class AssetsDiffs(object):
         self.name = name
         self.device = device
         self.nodename = nodename
-        self.before_capture_path
-        self.after_capture_path
+        self.before_capture_path = yesterday.capture_path
+        self.after_capture_path = today.capture_path
 
     @classmethod
     def parse(cls, today, yesterday):
