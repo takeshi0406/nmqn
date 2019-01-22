@@ -60,10 +60,10 @@ async def fetch_stylesheets(urls):
 
 
 class Response(object):
-    def __init__(self, html, stylesheets=None, screenshot=None):
+    def __init__(self, html, stylesheets, capture_path):
         self.html = html
         self.stylesheets = stylesheets
-        self.screenshot = screenshot
+        self.capture_path = capture_path
 
 
 class AsyncCrawler(object):
@@ -135,7 +135,6 @@ class CssResponse(object):
 
     @classmethod
     async def fetch(cls, url):
-        print(url)
         # TODO:: ブラウザから取得したい
         async with aiohttp.request('GET', url) as response:
             css = await response.text()
