@@ -47,10 +47,16 @@ class EachPageBuilder(object):
             "title": self._diffs.name,
             "added": [{"url": x.url} for x in self._diffs.added],
             "deleted": [{"url": x.url} for x in self._diffs.deleted],
-            "before_capture_path": self._diffs.before_capture_path,
-            "after_capture_path": self._diffs.after_capture_path
+            "before_path": self._copy_path(self._diffs.before_capture_path, "before"),
+            "after_path": self._copy_path(self._diffs.after_capture_path, "after")
         })
         mdpath = self._path / mdname
         with mdpath.open("w") as f:
             f.write(md)
         return mdpath
+
+    def _copy_path(self, capture_path, name):
+        path = self._path / "figures" / f"{name}.png"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(capture_path, path)
+        return str(path.relative_to(self._path))

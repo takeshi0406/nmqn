@@ -32,4 +32,4 @@
 
 |  before  |  after  |
 |:----|:----|
-| test | test |
+| ![{{before_path}}]({{before_path}}) | ![{{after_path}}]({{after_path}}) |

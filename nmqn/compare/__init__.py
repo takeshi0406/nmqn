@@ -37,18 +37,21 @@ class NodeManager(object):
 
 
 class AssetsDiffs(object):
-    def __init__(self, name, device, nodename, today, yesterday):
+    def __init__(self, name, device, nodename, today, yesterday, after_path, before_path):
+        # TODO:: 引数の順番
         self._today = {x.id_url: x for x in today}
         self._yesterday = {x.id_url: x for x in yesterday}
         self.name = name
         self.device = device
         self.nodename = nodename
-        self.before_capture_path = yesterday.capture_path
-        self.after_capture_path = today.capture_path
+        self.before_capture_path = before_path
+        self.after_capture_path = after_path
 
     @classmethod
     def parse(cls, today, yesterday):
-        return cls(today.name, today.device, today.nodename, today.iter_stylesheets(), yesterday.iter_stylesheets())
+        return cls(today.name, today.device, today.nodename,
+                   today.iter_stylesheets(), yesterday.iter_stylesheets(),
+                   today.capture_path, yesterday.capture_path)
 
     @property
     def added(self):
@@ -88,6 +91,7 @@ class Reader(object):
         self._path = path
         with (path / "result.yml").open("r") as f:
             self.result = yaml.load(f)
+        self.capture_path = Path(self.result["capture_path"]).resolve()
     
     @property
     def name(self):
@@ -100,10 +104,6 @@ class Reader(object):
     @property
     def nodename(self):
         return self.result["name"]
-
-    @property
-    def capture_path(self):
-        return self.result["capture_path"]
 
     def iter_stylesheets(self):
         for s in self.result["stylesheets"]:
