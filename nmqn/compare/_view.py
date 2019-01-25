@@ -23,9 +23,9 @@ class ReportBuilder(object):
 
 
 class TopPageBuilder(object):
-    def __init__(self, diffs, basepath):
-        self._diffs = diffs
-        self._path = basepath / diffs.device /diffs.nodename
+    def __init__(self, diffs_list, basepath):
+        self._diffs_list = diffs_list
+        self._path = basepath
         self._templete = TEMPLETES.get_template('top.tpl.md')
 
     def __enter__(self):
@@ -49,15 +49,20 @@ class TopPageBuilder(object):
     def _build_markdown(self, mdname):
         # TODO::
         md = self._templete.render({
-            "title": self._diffs.name,
-            "added": [{"url": x.url} for x in self._diffs.added],
-            "deleted": [{"url": x.url} for x in self._diffs.deleted],
-            "before_path": self._copy_path(self._diffs.before_capture_path, "before"),
-            "after_path": self._copy_path(self._diffs.after_capture_path, "after")
+            "pages": sorted([
+                {
+                    "name": x.name,
+                    "path": self._path / x.device / x.nodename / "index.html",
+                    "changed": len(x.diffs),
+                    "added": len(x.added),
+                    "deleted": len(x.deleted)
+                } for x in self._diffs_list
+            ], key=lambda r: (r["changed"], r["added"] + r["deleted"]))
         })
         mdpath = self._path / mdname
         with mdpath.open("w") as f:
             f.write(md)
+        return mdpath
 
 
 class EachPageBuilder(object):

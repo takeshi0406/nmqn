@@ -16,10 +16,14 @@ def execute(confpath, today, yesterday, path):
     m = NodeManager(basepath, config)
     rb = ReportBuilder(basepath, f"{yesterday}-{today}")
 
-    for t, y in zip(m.iter_nodes(today), m.iter_nodes(yesterday)):
-        # 差分を取る
-        with rb.each_page(AssetsDiffs.parse(t, y)) as ep:
+    df_list = [AssetsDiffs.parse(t, y) for t, y in zip(m.iter_nodes(today), m.iter_nodes(yesterday))]
+
+    for diffs in df_list:
+        with rb.each_page(diffs) as ep:
             ep.build()
+        
+    with rb.top_page(df_list) as tp:
+        tp.build()
 
 
 class NodeManager(object):
