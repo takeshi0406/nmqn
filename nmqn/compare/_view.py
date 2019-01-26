@@ -49,15 +49,18 @@ class TopPageBuilder(object):
     def _build_markdown(self, mdname):
         # TODO::
         md = self._templete.render({
+            "name": self._diffs_list[0].name,
             "pages": sorted([
                 {
-                    "name": x.name,
+                    "name": x.nodename,
+                    "device": x.device,
                     "path": self._path / x.device / x.nodename / "index.html",
                     "changed": len(x.diffs),
                     "added": len(x.added),
                     "deleted": len(x.deleted)
                 } for x in self._diffs_list
-            ], key=lambda r: (r["changed"], r["added"] + r["deleted"]))
+            ], key=lambda r: (r["changed"], r["added"] + r["deleted"]),
+            reverse=True)
         })
         mdpath = self._path / mdname
         with mdpath.open("w") as f:
