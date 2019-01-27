@@ -3,6 +3,8 @@ from nmqn import crawl as crl
 from nmqn import compare as cmp
 
 
+# TODO:: ロギング
+
 @click.group()
 def cmd():
     pass
@@ -18,9 +20,9 @@ def crawl(config, max_tab, path, debug):
 
 @cmd.command()
 @click.option('config', '-c', required=True, type=str, help='Config path.')
-@click.option('x', '-x', default=None, type=str, help='Config path.')
-@click.option('y', '-y', default=None, type=str, help='Config path.')
-@click.option('path', '-p', default="./.tmp", type=str, help='Config path.')
+@click.option('x', '-x', default=None, type=str, help='before path.')
+@click.option('y', '-y', default=None, type=str, help='after path.')
+@click.option('path', '-p', default="./.tmp", type=str, help='Crawl path.')
 def compare(config, x, y, path):
     cmp.execute(config, x, y, path)
 
