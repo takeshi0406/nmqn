@@ -1,4 +1,7 @@
+# タイトルです
 name: rakuten
+
+# クロール時のオプション。useragentの指定が主です
 options:
   pc:
     useragent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'
@@ -8,9 +11,13 @@ options:
       width: 1125
       height: 2001
       isMobile: true
+
+# クロールが禁止されていないかのrobots.txtでチェックします
 robots:
   pc: https://www.rakuten.co.jp/robots.txt
   sp: https://www.rakuten.co.jp/robots.txt
+
+# topやnameなどのチェック対象
 nodes:
   - name: top
     url:
@@ -20,6 +27,7 @@ nodes:
     url:
       pc: https://www.rakuten.co.jp/category/565162/
       sp: https://www.rakuten.co.jp/category/565162/
+    # 入れ替わりのある「商品ページ」を、子要素として定点観測できます
     childs:
       - name: item
         url_regexp:

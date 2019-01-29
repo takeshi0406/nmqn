@@ -13,6 +13,8 @@ pip install nmqn
 
 ## Usage
 
+設定ファイルの仕様は、GitHubリポジトリの `sample.yaml` を確認してください。
+
 ```bash
 # sample.yamlの設定を基にクロール
 nmqn crawl -c sample.yaml
