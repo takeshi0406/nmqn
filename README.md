@@ -7,6 +7,7 @@
 pandocに依存しています。
 
 ```bash
+# Macの場合
 brew install pandoc
 pip install nmqn
 ```
