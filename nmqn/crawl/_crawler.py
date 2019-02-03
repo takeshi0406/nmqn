@@ -1,18 +1,23 @@
 from nmqn.lib import crawler
 from urllib.parse import urljoin
+import shutil
 from pathlib import Path
 
 
 def crawl_all_nodes(allconfig, max_tab, path, headless):
-    for deviceconf in allconfig:
-        client = CrawlClient(deviceconf, max_tab, Path(path) / deviceconf.device, headless)
-        for node, result in client.crawl_all_nodes(deviceconf.nodes):
-            yield NodeResponse(
-                device=deviceconf.device,
-                node=node,
-                html=result.html,
-                stylesheets=result.stylesheets,
-                capture_path=result.capture_path)
+    try:
+        for deviceconf in allconfig:
+            client = CrawlClient(deviceconf, max_tab, Path(path) / deviceconf.device, headless)
+            for node, result in client.crawl_all_nodes(deviceconf.nodes):
+                yield NodeResponse(
+                    device=deviceconf.device,
+                    node=node,
+                    html=result.html,
+                    stylesheets=result.stylesheets,
+                    capture_path=result.capture_path)
+    except:
+        shutil.rmtree(path, ignore_errors=True)
+        raise
 
 
 class NodeResponse(object):
